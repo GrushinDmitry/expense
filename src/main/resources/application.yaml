@@ -1,0 +1,24 @@
+server:
+  port: 9000
+
+spring:
+  application.name: expense
+  profiles.active: dev
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+  flyway:
+    url: jdbc:postgresql://localhost:5432/postgres
+    user: ${spring.r2dbc.username}
+    password: ${spring.r2dbc.password}
+    enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    me:
+      hl:
+        webfluxapi: DEBUG
