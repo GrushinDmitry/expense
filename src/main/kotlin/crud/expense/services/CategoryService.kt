@@ -13,9 +13,7 @@ class CategoryService(private val categories: Categories) {
 
     fun deleteByName(name: String) = categories.deleteByNameIgnoreCase(name)
 
-    fun findAll(): Flux<Category> =
-        categories.findAll().switchIfEmpty(Flux.error(RuntimeException("No category found")))
+    fun findAll(): Flux<Category> = categories.findAll()
 
-    fun findByName(name: String): Mono<Category> =
-        categories.findByNameIgnoreCase(name).switchIfEmpty(Mono.error(RuntimeException("Category $name not found")))
+    fun findByName(name: String): Mono<Category> = categories.findByNameIgnoreCase(name)
 }

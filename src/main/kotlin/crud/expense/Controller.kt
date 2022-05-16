@@ -3,6 +3,7 @@ package crud.expense
 import crud.expense.models.Category
 import crud.expense.models.Person
 import crud.expense.services.CategoryService
+import crud.expense.services.ExpenseAccountingService
 import crud.expense.services.ExpenseService
 import crud.expense.services.PersonService
 import org.springframework.http.HttpStatus
@@ -20,34 +21,20 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/expense-accounting", produces = [MediaType.APPLICATION_JSON_VALUE])
 internal class Controller(
-    private val expenseService: ExpenseService,
-    private val personService: PersonService,
-    private val categoryService: CategoryService
+    private val expenseAccountingService: ExpenseAccountingService
 ) {
-  //  val actualCategories = categoryService.findAll().toIterable().associate { it.id to it.name }.toMutableMap()
-/*    val actualPersons =
-        personService.findAll().toIterable().associate { it.id to PersonNames(it.firstname, it.lastname) }
-            .toMutableMap()
 
-    data class PersonNames(
-        val firstname: String, val lastname: String
-    )*/
-
-    @PostMapping("/person",consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping("/person", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    fun createPerson(@RequestBody person: Person) = personService.create(person)
-
-/*    @PutMapping("/{id}", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun editItem(@RequestBody itemRequest: ItemRequest, @PathVariable id: Long) =
-        itemService.update(id, itemRequest.toDomain())*/
+    fun createPerson(@RequestBody person: Person) = expenseAccountingService.createPerson(person)
 
     @GetMapping("/person/{id}")
-    fun findPerson(@PathVariable id: Long) = personService.findById(id)
+    fun getPerson(@PathVariable id: Long) = expenseAccountingService.getByIdPerson(id)
 
     @GetMapping("/person")
-    fun findPerson() = personService.findAll()
+    fun getPerson() = expenseAccountingService.getAllPerson()
 
     @DeleteMapping("/person/{id}")
-    fun deletePerson(@PathVariable id: Long) = personService.deleteById(id)
+    fun deletePerson(@PathVariable id: Long) = expenseAccountingService.deleteByIdPerson(id)
 }
 
