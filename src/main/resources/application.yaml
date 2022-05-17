@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: ${PORT:9000}
 
 spring:
   application.name: expense
@@ -15,7 +15,7 @@ spring:
     enabled: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
 logging:
   level:

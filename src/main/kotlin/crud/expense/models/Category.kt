@@ -7,5 +7,5 @@ import org.springframework.data.relational.core.mapping.Table
 data class Category(
     @Id
     val id: Long,
-    val name: String
+    var name: String
 )

@@ -2,10 +2,7 @@ package crud.expense
 
 import crud.expense.models.Category
 import crud.expense.models.Person
-import crud.expense.services.CategoryService
 import crud.expense.services.ExpenseAccountingService
-import crud.expense.services.ExpenseService
-import crud.expense.services.PersonService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -29,12 +26,34 @@ internal class Controller(
     fun createPerson(@RequestBody person: Person) = expenseAccountingService.createPerson(person)
 
     @GetMapping("/person/{id}")
+    @ResponseStatus(HttpStatus.FOUND)
     fun getPerson(@PathVariable id: Long) = expenseAccountingService.getByIdPerson(id)
 
     @GetMapping("/person")
-    fun getPerson() = expenseAccountingService.getAllPerson()
+    fun getAllPerson() = expenseAccountingService.getAllPerson()
 
     @DeleteMapping("/person/{id}")
     fun deletePerson(@PathVariable id: Long) = expenseAccountingService.deleteByIdPerson(id)
+
+    @PutMapping("/person/{id}", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun editPerson(@RequestBody updatePerson: Person, @PathVariable id: Long) =
+        expenseAccountingService.updatePerson(updatePerson, id)
+
+    @PostMapping("/category", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createCategory(@RequestBody category: Category) = expenseAccountingService.createCategory(category)
+
+    @GetMapping("/category/{name}")
+    @ResponseStatus(HttpStatus.FOUND)
+    fun getCategory(@PathVariable name: String) = expenseAccountingService.getByNameCategory(name)
+
+    @GetMapping("/category")
+    fun getAllCategory() = expenseAccountingService.getAllCategory()
+
+    @DeleteMapping("/category/{name}")
+    fun deleteCategory(@PathVariable name: String) = expenseAccountingService.deleteByNameCategory(name)
+
+    @PutMapping("/category/{id}", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun editCategory(@RequestBody updateCategory: Category, @PathVariable id: Long) = expenseAccountingService.updateCategory(updateCategory,id)
 }
 

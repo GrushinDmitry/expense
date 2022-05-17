@@ -16,4 +16,12 @@ class CategoryService(private val categories: Categories) {
     fun findAll(): Flux<Category> = categories.findAll()
 
     fun findByName(name: String): Mono<Category> = categories.findByNameIgnoreCase(name)
+
+    fun existByName(name: String): Mono<Boolean> = categories.existsByNameIgnoreCase(name)
+
+    fun findById(id: Long): Mono<Category> = categories.findById(id)
+
+    fun update(updatedCategory: Category, id: Long): Mono<Category> =
+        categories.save(updatedCategory.copy(id = id))
+
 }

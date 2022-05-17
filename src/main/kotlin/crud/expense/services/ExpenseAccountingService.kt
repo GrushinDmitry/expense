@@ -22,14 +22,16 @@ class ExpenseAccountingService(
     )
 
     fun createCategory(category: Category): Mono<Category> {
-        if (categoryService.findByName(category.name) != Mono.empty<Category>()) Mono.error<Category>(
-            CategoryAlreadyExistsException("Category: ${category.name} already exists")
-        )
+        categoryService.existByName(category.name).map { exist ->
+            {
+                if (exist) Mono.error<Category>(CategoryAlreadyExistsException("Category: ${category.name} already exists"))
+            }
+        }
         return categoryService.create(category)
     }
 
     fun deleteByNameCategory(name: String) {
-        findByNameCategoryWithValidate(name)
+        //findByNameCategoryWithValidate(name)
         categoryService.deleteByName(name)
     }
 
@@ -38,8 +40,16 @@ class ExpenseAccountingService(
 
     fun getByNameCategory(name: String): Mono<Category> = findByNameCategoryWithValidate(name)
 
+    fun updateCategory(updatedCategory: Category, id: Long): Mono<Category> {
+        findByIdCategoryWithValidate(id)
+        return categoryService.update(updatedCategory, id)
+    }
+
     fun findByNameCategoryWithValidate(name: String): Mono<Category> = categoryService.findByName(name)
         .switchIfEmpty(Mono.error(CategoryNotExistsException("Category: $name not exists")))
+
+    fun findByIdCategoryWithValidate(id: Long): Mono<Category> = categoryService.findById(id)
+        .switchIfEmpty(Mono.error(CategoryNotExistsException("Category with id: $id not exists")))
 
     fun createPerson(person: Person): Mono<Person> {
         if (personService.findByNames(person.firstname, person.lastname) != Mono.empty<Person>()) Mono.error<Person>(
@@ -48,16 +58,22 @@ class ExpenseAccountingService(
         return personService.create(person)
     }
 
-    fun deleteByIdPerson(id: Long) {
-        findByIdPersonWithValidate(id)
+    fun deleteByIdPerson(id: Long) =
+        //findByIdPersonWithValidate(id)
         personService.deleteById(id)
-    }
+
 
     fun getAllPerson(): Flux<Person> =
         personService.findAll().switchIfEmpty(Flux.error(PersonNotExistsException("Persons not exists")))
 
     fun getByIdPerson(id: Long): Mono<Person> = findByIdPersonWithValidate(id)
 
+    fun updatePerson(updatedPerson: Person, id: Long): Mono<Person> {
+        findByIdPersonWithValidate(id)
+        return personService.update(updatedPerson, id)
+    }
+
     fun findByIdPersonWithValidate(id: Long): Mono<Person> = personService.findById(id)
         .switchIfEmpty(Mono.error(PersonNotExistsException("Person with id=$id not exists")))
+
 }

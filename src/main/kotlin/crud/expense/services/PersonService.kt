@@ -19,4 +19,7 @@ class PersonService(private val persons: Persons) {
 
     fun findByNames(firstname: String, lastname: String): Mono<Person> =
         persons.findByFirstnameIgnoreCaseAndLastnameIgnoreCase(firstname, lastname)
+
+    fun update(updatedPerson: Person, id: Long): Mono<Person> = persons.save(updatedPerson.copy(id = id))
+
 }
