@@ -2,6 +2,7 @@ package crud.expense.services
 
 import crud.expense.models.Category
 import crud.expense.repositories.Categories
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -9,9 +10,10 @@ import reactor.core.publisher.Mono
 @Service
 class CategoryService(private val categories: Categories) {
 
-    fun create(category: Category): Mono<Category> = categories.save(category)
 
-    fun deleteByName(name: String) = categories.deleteByNameIgnoreCase(name)
+    fun create(category: Category): Mono<Category> = categories.save(category.copy(id = null))
+
+    fun deleteByName(id: Long) = categories.deleteById(id)
 
     fun findAll(): Flux<Category> = categories.findAll()
 

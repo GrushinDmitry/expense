@@ -1,9 +1,7 @@
 package crud.expense.services
 
-import crud.expense.configuration.CategoryAlreadyExistsException
-import crud.expense.configuration.CategoryNotExistsException
-import crud.expense.configuration.PersonAlreadyExistsException
-import crud.expense.configuration.PersonNotExistsException
+import crud.expense.configuration.ErrorCode
+import crud.expense.configuration.ExpenseAccountingException
 import crud.expense.models.Category
 import crud.expense.models.Person
 import org.springframework.stereotype.Service
@@ -24,19 +22,19 @@ class ExpenseAccountingService(
     fun createCategory(category: Category): Mono<Category> {
         categoryService.existByName(category.name).map { exist ->
             {
-                if (exist) Mono.error<Category>(CategoryAlreadyExistsException("Category: ${category.name} already exists"))
+                if (exist) Mono.error<Category>(ExpenseAccountingException(ErrorCode.CATEGORY_ALREADY,category.name))
             }
         }
         return categoryService.create(category)
     }
 
-    fun deleteByNameCategory(name: String) {
+    fun deleteByNameCategory(id: Long) {
         //findByNameCategoryWithValidate(name)
-        categoryService.deleteByName(name)
+        categoryService.deleteByName(id)
     }
 
     fun getAllCategory(): Flux<Category> =
-        categoryService.findAll().switchIfEmpty(Flux.error(CategoryNotExistsException("Categories not exists")))
+        categoryService.findAll().switchIfEmpty(Flux.error(ExpenseAccountingException(ErrorCode.NO_CATEGORIES)))
 
     fun getByNameCategory(name: String): Mono<Category> = findByNameCategoryWithValidate(name)
 
@@ -46,25 +44,26 @@ class ExpenseAccountingService(
     }
 
     fun findByNameCategoryWithValidate(name: String): Mono<Category> = categoryService.findByName(name)
-        .switchIfEmpty(Mono.error(CategoryNotExistsException("Category: $name not exists")))
+        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_CATEGORY_BY_NAME,name)))
 
     fun findByIdCategoryWithValidate(id: Long): Mono<Category> = categoryService.findById(id)
-        .switchIfEmpty(Mono.error(CategoryNotExistsException("Category with id: $id not exists")))
+        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_CATEGORY_BY_ID, id.toString())))
 
     fun createPerson(person: Person): Mono<Person> {
         if (personService.findByNames(person.firstname, person.lastname) != Mono.empty<Person>()) Mono.error<Person>(
-            PersonAlreadyExistsException("Person with firstname: ${person.firstname} and lastname: ${person.lastname} already exists")
+            ExpenseAccountingException(ErrorCode.NO_PERSON_BY_FIRSTNAME_LASTNAME,
+                listOf(person.firstname,person.lastname).joinToString(" "))
         )
         return personService.create(person)
     }
 
-    fun deleteByIdPerson(id: Long) =
-        //findByIdPersonWithValidate(id)
+    fun deleteByIdPerson(id: Long) {
+        findByIdPersonWithValidate(id)
         personService.deleteById(id)
-
+    }
 
     fun getAllPerson(): Flux<Person> =
-        personService.findAll().switchIfEmpty(Flux.error(PersonNotExistsException("Persons not exists")))
+        personService.findAll().switchIfEmpty(Flux.error(ExpenseAccountingException(ErrorCode.NO_PERSONS)))
 
     fun getByIdPerson(id: Long): Mono<Person> = findByIdPersonWithValidate(id)
 
@@ -74,6 +73,6 @@ class ExpenseAccountingService(
     }
 
     fun findByIdPersonWithValidate(id: Long): Mono<Person> = personService.findById(id)
-        .switchIfEmpty(Mono.error(PersonNotExistsException("Person with id=$id not exists")))
+        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_PERSON_BY_ID,id.toString())))
 
 }

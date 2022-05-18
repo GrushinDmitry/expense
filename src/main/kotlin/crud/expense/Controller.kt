@@ -50,10 +50,12 @@ internal class Controller(
     @GetMapping("/category")
     fun getAllCategory() = expenseAccountingService.getAllCategory()
 
-    @DeleteMapping("/category/{name}")
-    fun deleteCategory(@PathVariable name: String) = expenseAccountingService.deleteByNameCategory(name)
+    @DeleteMapping("/category/{id}")
+    fun deleteCategory(@PathVariable id: Long) = expenseAccountingService.deleteByNameCategory(id)
 
     @PutMapping("/category/{id}", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun editCategory(@RequestBody updateCategory: Category, @PathVariable id: Long) = expenseAccountingService.updateCategory(updateCategory,id)
+    fun editCategory(@RequestBody updateCategory: Category, @PathVariable id: Long) =
+        expenseAccountingService.updateCategory(updateCategory, id)
 }
+
 

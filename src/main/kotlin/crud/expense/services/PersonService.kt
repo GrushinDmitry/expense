@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono
 @Service
 class PersonService(private val persons: Persons) {
 
-    fun create(person: Person): Mono<Person> = persons.save(person)
+    fun create(person: Person): Mono<Person> = persons.save(person.copy(id=null))
 
     fun deleteById(id: Long) = persons.deleteById(id)
 

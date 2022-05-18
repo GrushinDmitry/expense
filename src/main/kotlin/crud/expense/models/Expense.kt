@@ -7,7 +7,7 @@ import java.time.LocalDate
 @Table("EXPENSE")
 data class Expense(
     @Id
-    val id: Long,
+    val id: Long?,
     val cost: Long,
     val data: LocalDate,
     val categoryName: String,

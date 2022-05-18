@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("PERSON")
 data class Person(
     @Id
-    val id: Long,
+    val id: Long?,
     val firstname: String,
     val lastname: String
 )
