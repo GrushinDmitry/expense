@@ -10,10 +10,11 @@ import reactor.core.publisher.Mono
 @Service
 class CategoryService(private val categories: Categories) {
 
-
     fun create(category: Category): Mono<Category> = categories.save(category.copy(id = null))
 
-    fun deleteByName(id: Long) = categories.deleteById(id)
+    fun deleteByName(name: String) = categories.deleteByName(name)
+
+    fun deleteById(id: Long) = categories.deleteById(id)
 
     fun findAll(): Flux<Category> = categories.findAll()
 

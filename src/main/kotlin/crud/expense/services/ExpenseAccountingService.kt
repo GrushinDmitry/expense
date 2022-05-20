@@ -15,23 +15,25 @@ class ExpenseAccountingService(
     private val categoryService: CategoryService
 ) {
 
-    data class PersonNames(
-        val firstname: String, val lastname: String
-    )
+    fun createCategory(category: Category): Mono<Category> =
+        categoryService.findByName(category.name).filter { it.name.isNotEmpty() }
+            .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.CATEGORY_ALREADY, category.name)))
 
-    fun createCategory(category: Category): Mono<Category> {
-        categoryService.existByName(category.name).map { exist ->
-            {
-                if (exist) Mono.error<Category>(ExpenseAccountingException(ErrorCode.CATEGORY_ALREADY,category.name))
-            }
+/*        return categoryService.create(category)
+    }*/
+
+    //.switchIfEmpty(categoryService.create(category)) //subscribe { throw ExpenseAccountingException(ErrorCode.CATEGORY_ALREADY, category.name) }
+    /* return categoryService.create(category)*/
+
+    fun deleteByIdCategory(id: Long) =
+        findByIdCategoryWithValidate(id).flatMap {
+            categoryService.deleteById(it.id!!)
         }
-        return categoryService.create(category)
-    }
 
-    fun deleteByNameCategory(id: Long) {
-        //findByNameCategoryWithValidate(name)
-        categoryService.deleteByName(id)
-    }
+    fun deleteByNameCategory(name: String) =
+        findByNameCategoryWithValidate(name).flatMap {
+            categoryService.deleteByName(it.name)
+        }
 
     fun getAllCategory(): Flux<Category> =
         categoryService.findAll().switchIfEmpty(Flux.error(ExpenseAccountingException(ErrorCode.NO_CATEGORIES)))
@@ -44,15 +46,16 @@ class ExpenseAccountingService(
     }
 
     fun findByNameCategoryWithValidate(name: String): Mono<Category> = categoryService.findByName(name)
-        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_CATEGORY_BY_NAME,name)))
+        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_CATEGORY_BY_NAME, name)))
 
     fun findByIdCategoryWithValidate(id: Long): Mono<Category> = categoryService.findById(id)
         .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_CATEGORY_BY_ID, id.toString())))
 
     fun createPerson(person: Person): Mono<Person> {
         if (personService.findByNames(person.firstname, person.lastname) != Mono.empty<Person>()) Mono.error<Person>(
-            ExpenseAccountingException(ErrorCode.NO_PERSON_BY_FIRSTNAME_LASTNAME,
-                listOf(person.firstname,person.lastname).joinToString(" "))
+            ExpenseAccountingException(
+                ErrorCode.NO_PERSON_BY_FIRSTNAME_LASTNAME, listOf(person.firstname, person.lastname).joinToString(" ")
+            )
         )
         return personService.create(person)
     }
@@ -73,6 +76,6 @@ class ExpenseAccountingService(
     }
 
     fun findByIdPersonWithValidate(id: Long): Mono<Person> = personService.findById(id)
-        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_PERSON_BY_ID,id.toString())))
+        .switchIfEmpty(Mono.error(ExpenseAccountingException(ErrorCode.NO_PERSON_BY_ID, id.toString())))
 
 }

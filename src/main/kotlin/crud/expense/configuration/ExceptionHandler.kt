@@ -71,7 +71,7 @@ class ExceptionHandler (val objectMapper: ObjectMapper, val messageSource: Messa
     private fun buildResponseAndLog(status: HttpStatus, errorResponse: ErrorResponse? = null,
                                     exchange: ServerWebExchange): Mono<Void>{
         val bufferFactory = exchange.response.bufferFactory()
-        val dataBuffer: DataBuffer? = try {
+        val dataBuffer: DataBuffer = try {
             bufferFactory.wrap(objectMapper.writeValueAsBytes(errorResponse))
         } catch (e: JsonProcessingException) {
             bufferFactory.wrap("".toByteArray())
@@ -81,7 +81,7 @@ class ExceptionHandler (val objectMapper: ObjectMapper, val messageSource: Messa
 
         logResponse(status, errorResponse, exchange)
 
-        return exchange.response.writeWith(Mono.just(dataBuffer!!))
+        return exchange.response.writeWith(Mono.just(dataBuffer))
     }
 
     private fun logResponse(status: HttpStatus, errorResponse: ErrorResponse?, exchange: ServerWebExchange) {

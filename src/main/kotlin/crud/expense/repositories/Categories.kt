@@ -10,5 +10,5 @@ interface Categories : ReactiveCrudRepository<Category, Long> {
 
     fun existsByNameIgnoreCase(name: String): Mono<Boolean>
 
-    fun deleteByNameIgnoreCase(name: String)
+    fun deleteByName(name: String):Mono<Int>
 }
