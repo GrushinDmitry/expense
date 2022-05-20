@@ -2,7 +2,6 @@ package crud.expense.configuration
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import crud.expense.services.ExpenseAccountingService
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.context.MessageSource
@@ -10,9 +9,6 @@ import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.validation.FieldError
-import org.springframework.validation.ObjectError
-import org.springframework.web.bind.support.WebExchangeBindException
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import java.util.Locale
@@ -24,35 +20,30 @@ class ExceptionHandler (val objectMapper: ObjectMapper, val messageSource: Messa
 
     override fun handle(exchange: ServerWebExchange, ex: Throwable): Mono<Void> {
         return when (ex) {
-            is ExpenseAccountingException -> handleExpenseAccountingException(exchange, ex)
-            is WebExchangeBindException -> handleWebExchangeBindException(exchange, ex)
+            is MemberServiceNotFoundException -> handleNotFoundException(exchange, ex)
+            is MemberServiceAlreadyExistsException -> handleFoundException(exchange, ex)
             else -> handleUnknownError(exchange)
         }
     }
 
-    private fun handleExpenseAccountingException(exchange: ServerWebExchange, ex: ExpenseAccountingException): Mono<Void> {
+    private fun handleNotFoundException(exchange: ServerWebExchange, ex: MemberServiceNotFoundException): Mono<Void> {
         return buildResponseAndLog(
             HttpStatus.NOT_FOUND,
-            ErrorResponse(listOf(
-                Error(code = ex.message, message = messageSource.getMessage(
+            WarningResponse(listOf(
+                Warnings(code = ex.message, message = messageSource.getMessage(
                 ex.message, arrayOf(ex.value), Locale.getDefault()))
             )),
             exchange
         )
     }
 
-    private fun handleWebExchangeBindException(exchange: ServerWebExchange, ex: WebExchangeBindException): Mono<Void> {
-        val errors = ex.bindingResult.allErrors.map {
-            val args = when (it) {
-                is FieldError -> it.rejectedValue?.let { r -> arrayOf(it.field, r) } ?: arrayOf(it.field)
-                is ObjectError -> arrayOf(it.objectName)
-                else -> emptyArray()
-            }
-            Error(it.defaultMessage!!, messageSource.getMessage(it.defaultMessage!!, args, Locale.getDefault()))
-        }
+    private fun handleFoundException(exchange: ServerWebExchange, ex: MemberServiceAlreadyExistsException): Mono<Void> {
         return buildResponseAndLog(
-            HttpStatus.BAD_REQUEST,
-            ErrorResponse(errors),
+            HttpStatus.OK,
+            WarningResponse(listOf(
+                Warnings(code = ex.message, message = messageSource.getMessage(
+                    ex.message, arrayOf(ex.value), Locale.getDefault()))
+            )),
             exchange
         )
     }
@@ -60,15 +51,15 @@ class ExceptionHandler (val objectMapper: ObjectMapper, val messageSource: Messa
     private fun handleUnknownError(exchange: ServerWebExchange): Mono<Void> {
         return buildResponseAndLog(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            ErrorResponse(listOf(
-                Error(code = ErrorCode.UNKNOWN_ERROR, message = messageSource.getMessage(
+            WarningResponse(listOf(
+                Warnings(code = ErrorCode.UNKNOWN_ERROR, message = messageSource.getMessage(
                     ErrorCode.UNKNOWN_ERROR, null, Locale.getDefault()))
             )),
             exchange
         )
     }
 
-    private fun buildResponseAndLog(status: HttpStatus, errorResponse: ErrorResponse? = null,
+    private fun buildResponseAndLog(status: HttpStatus, errorResponse: WarningResponse? = null,
                                     exchange: ServerWebExchange): Mono<Void>{
         val bufferFactory = exchange.response.bufferFactory()
         val dataBuffer: DataBuffer = try {
@@ -84,7 +75,7 @@ class ExceptionHandler (val objectMapper: ObjectMapper, val messageSource: Messa
         return exchange.response.writeWith(Mono.just(dataBuffer))
     }
 
-    private fun logResponse(status: HttpStatus, errorResponse: ErrorResponse?, exchange: ServerWebExchange) {
+    private fun logResponse(status: HttpStatus, errorResponse: WarningResponse?, exchange: ServerWebExchange) {
         val logString =
             "statusCode=${status.value()}, response=$errorResponse, requestPath=${exchange.request.path}, methodValue=${exchange.request.methodValue}"
         if (status.is5xxServerError)
