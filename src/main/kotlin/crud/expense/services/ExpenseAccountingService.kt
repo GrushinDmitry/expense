@@ -68,6 +68,10 @@ class ExpenseAccountingService(
         .switchIfEmpty(Mono.error(MemberServiceNotFoundException(ErrorCode.NO_PERSON_BY_ID, id.toString())))
 
 
-    fun findByCategoryNameExpense(categoryName: String): Flux<Expense> = expenseService.findByCategoryName(categoryName)
+    fun createExpense(expense: Expense): Mono<Expense> = expenseService.create(expense)
+
+    fun findByCategoryNameExpenseWithValidate(categoryName: String): Flux<Expense> = expenseService.findByCategoryName(categoryName)
         .switchIfEmpty(Mono.error(MemberServiceNotFoundException(ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME, categoryName)))
+
+    fun deleteByCategoryNameExpense(categoryName: String) = findByCategoryNameExpenseWithValidate(categoryName).flatMap { expenseService.deleteByCategoryName(categoryName) }
 }

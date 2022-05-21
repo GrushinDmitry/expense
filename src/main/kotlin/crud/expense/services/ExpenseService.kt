@@ -12,7 +12,7 @@ import java.time.LocalDate
 @Service
 class ExpenseService(private val expenses: Expenses) {
 
-    fun create(expense: Expense): Mono<Expense> = expenses.save(expense)
+    fun create(expense: Expense): Mono<Expense> = expenses.save(expense.copy(id = null))
 
     fun deleteByCategoryName(categoryName: String) = expenses.deleteByCategoryNameIgnoreCase(categoryName)
 
@@ -69,14 +69,5 @@ class ExpenseService(private val expenses: Expenses) {
         require(endData >= startDate) { "The endData=$endData must be after startData=$startDate" }
     }
 
-/*    enum class Direction(val direction: Sort.Direction) {
-        ASCENDING(Sort.Direction.ASC),
-        DESCENDING(Sort.Direction.DESC)
-    }*/
-
-/*    private val direction = mapOf(
-        "ascending" to Sort.Direction.ASC,
-        "descending" to Sort.Direction.DESC
-    )*/
 }
 
