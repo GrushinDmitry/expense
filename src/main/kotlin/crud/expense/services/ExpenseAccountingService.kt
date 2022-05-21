@@ -1,6 +1,7 @@
 package crud.expense.services
 
 import crud.expense.configuration.ErrorCode
+import crud.expense.configuration.WarningCode
 import crud.expense.configuration.MemberServiceAlreadyExistsException
 import crud.expense.configuration.MemberServiceNotFoundException
 import crud.expense.models.Category
@@ -19,7 +20,7 @@ class ExpenseAccountingService(
 
     fun createCategory(category: Category): Mono<Category> =
         categoryService.findByName(category.name)
-            .flatMap<Category> { Mono.error(MemberServiceAlreadyExistsException(ErrorCode.CATEGORY_ALREADY, it.name)) }
+            .flatMap<Category> { Mono.error(MemberServiceAlreadyExistsException(WarningCode.CATEGORY_ALREADY, it.name)) }
             .switchIfEmpty(categoryService.create(category))
 
     fun deleteByNameCategory(name: String) =
@@ -46,7 +47,7 @@ class ExpenseAccountingService(
         .flatMap<Person> {
             Mono.error(
                 MemberServiceAlreadyExistsException(
-                    ErrorCode.PERSON_ALREADY, listOf(it.firstname, it.lastname).joinToString(" ")
+                    WarningCode.PERSON_ALREADY, listOf(it.firstname, it.lastname).joinToString(" ")
                 )
             )
         }.switchIfEmpty(personService.create(person))
