@@ -22,44 +22,47 @@ class ExpenseService(
         .flatMap { categoryService.getByName(expense.categoryName) }
         .flatMap { expenses.save(expense.copy(id = null, data = null)) }
 
-/*    fun deleteByCategoryName(categoryName: String) =
-        getByCategoryNameWithValidate(categoryName).flatMap { expenses.deleteByCategoryNameIgnoreCase(categoryName) }
-
-    fun getByCategoryName(categoryName: String): Flux<Expense> = getByCategoryNameWithValidate(categoryName)*/
-
-    private fun getByCategoryNameWithValidate(categoryName: String): Flux<Expense> =
-        expenses.findByCategoryNameIgnoreCase(categoryName)
-            .switchIfEmpty(
-                Mono.error(
-                    MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME,
-                        categoryName
-                    )
+    private fun findFirstByPersonIdWithValidate(id: Long): Flux<Expense> =
+        expenses.findFirstByPersonId(id).switchIfEmpty(
+            Mono.error(
+                MemberServiceNotFoundException(
+                    ErrorCode.NO_EXPENSE_BY_PERSON_ID,
+                    id.toString()
                 )
             )
+        )
 
-/*    fun deleteByPersonId(id: Long) = getByPersonIdWithValidate(id).flatMap { expenses.deleteByPersonId(id) }
-
-    fun getByPersonId(id: Long): Flux<Expense> = getByPersonIdWithValidate(id)*/
-
-    private fun getByPersonIdWithValidate(id: Long): Flux<Expense> =
-        expenses.findByPersonId(id)
-            .switchIfEmpty(
-                Mono.error(
-                    MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_BY_PERSON_ID,
-                        id.toString()
-                    )
+    private fun findFirstByCategoryNameWithValidate(categoryName: String): Flux<Expense> =
+        expenses.findFirstByCategoryName(categoryName).switchIfEmpty(
+            Mono.error(
+                MemberServiceNotFoundException(
+                    ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME,
+                    categoryName
                 )
             )
+        )
 
     fun deleteByCategoryNameAndPersonId(categoryName: String, personId: Long) =
-        getByCategoryNameAndPersonId(categoryName, personId).flatMap { expenses.deleteByCategoryNameIgnoreCase(categoryName) }
+        findFirstByPersonIdWithValidate(personId).flatMap {
+            findFirstByCategoryNameWithValidate(categoryName)
+                .flatMap { expenses.deleteByCategoryNameIgnoreCase(categoryName) }
+        }
 
-    fun getByCategoryNameAndPersonId(categoryName: String, personId: Long): Flux<Expense> = getByCategoryNameAndPersonIdWithValidate(categoryName,personId)
+    fun getByCategoryNameAndPersonId(categoryName: String, personId: Long): Flux<Expense> =
+        findByCategoryNameAndPersonIdWithValidate(categoryName, personId)
 
-    private fun getByCategoryNameAndPersonIdWithValidate(categoryName: String, personId: Long): Flux<Expense> =
-       expenses.existsByPersonId(personId).flatMap { it. }
+    private fun findByCategoryNameAndPersonIdWithValidate(categoryName: String, personId: Long): Flux<Expense> =
+        findFirstByPersonIdWithValidate(personId).flatMap {
+            expenses.findByCategoryNameIgnoreCaseAndPersonId(categoryName, personId)
+                .switchIfEmpty(
+                    Mono.error(
+                        MemberServiceNotFoundException(
+                            ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME,
+                            categoryName
+                        )
+                    )
+                )
+        }
 
     fun findByCostLessThan(cost: Int, pageNum: Int, pageSize: Int, direction: Sort.Direction): Flux<Expense> {
         validatePageParamsAndSortDirection(pageNum, pageSize, direction)

@@ -10,11 +10,11 @@ import java.time.LocalDate
 
 interface Expenses : ReactiveCrudRepository<Expense, Long> {
 
-    fun findByCategoryNameIgnoreCase(name: String): Flux<Expense>
+    fun findByCategoryNameIgnoreCaseAndPersonId(categoryName: String, personId: Long): Flux<Expense>
 
-    fun findByPersonId(id: Long): Flux<Expense>
+    fun findFirstByPersonId(personId: Long): Flux<Expense>
 
-    fun existsByPersonId(id: Long): Mono<Boolean>
+    fun findFirstByCategoryName(categoryName: String): Flux<Expense>
 
     fun deleteByCategoryNameIgnoreCase(categoryName: String): Mono<Void>
 
