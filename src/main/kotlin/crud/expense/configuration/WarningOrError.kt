@@ -16,4 +16,5 @@ object ErrorCode {
     const val NO_PERSONS = "Persons_not_found"
     const val NO_PERSON_BY_ID = "Person_not_found_by_id"
     const val NO_EXPENSE_BY_CATEGORY_NAME = "Expense_not_found_by_category_name"
+    const val NO_EXPENSE_BY_PERSON_ID = "Expense_not_found_by_id"
 }

@@ -1,5 +1,7 @@
 package crud.expense.services
 
+import crud.expense.configuration.ErrorCode
+import crud.expense.configuration.MemberServiceNotFoundException
 import crud.expense.models.Expense
 import crud.expense.repositories.Expenses
 import org.springframework.data.domain.PageRequest
@@ -10,19 +12,54 @@ import reactor.core.publisher.Mono
 import java.time.LocalDate
 
 @Service
-class ExpenseService(private val expenses: Expenses) {
+class ExpenseService(
+    private val expenses: Expenses,
+    private val personService: PersonService,
+    private val categoryService: CategoryService
+) {
 
-    fun create(expense: Expense): Mono<Expense> = expenses.save(expense.copy(id = null))
+    fun create(expense: Expense): Mono<Expense> = personService.getById(expense.personId)
+        .flatMap { categoryService.getByName(expense.categoryName) }
+        .flatMap { expenses.save(expense.copy(id = null, data = null)) }
 
-    fun deleteByCategoryName(categoryName: String) = expenses.deleteByCategoryNameIgnoreCase(categoryName)
+/*    fun deleteByCategoryName(categoryName: String) =
+        getByCategoryNameWithValidate(categoryName).flatMap { expenses.deleteByCategoryNameIgnoreCase(categoryName) }
 
-    fun deleteByUserId(id: Long) = expenses.deleteByUserId(id)
+    fun getByCategoryName(categoryName: String): Flux<Expense> = getByCategoryNameWithValidate(categoryName)*/
 
-    fun findByUserId(id: Long): Flux<Expense> =
-        expenses.findByUserId(id).switchIfEmpty(Flux.error(RuntimeException("Expense with userId=$id not found")))
+    private fun getByCategoryNameWithValidate(categoryName: String): Flux<Expense> =
+        expenses.findByCategoryNameIgnoreCase(categoryName)
+            .switchIfEmpty(
+                Mono.error(
+                    MemberServiceNotFoundException(
+                        ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME,
+                        categoryName
+                    )
+                )
+            )
 
-    fun findByCategoryName(categoryName: String): Flux<Expense> = expenses.findByCategoryNameIgnoreCase(categoryName)
-        .switchIfEmpty(Flux.error(RuntimeException("Expense with categoryName=$categoryName not found")))
+/*    fun deleteByPersonId(id: Long) = getByPersonIdWithValidate(id).flatMap { expenses.deleteByPersonId(id) }
+
+    fun getByPersonId(id: Long): Flux<Expense> = getByPersonIdWithValidate(id)*/
+
+    private fun getByPersonIdWithValidate(id: Long): Flux<Expense> =
+        expenses.findByPersonId(id)
+            .switchIfEmpty(
+                Mono.error(
+                    MemberServiceNotFoundException(
+                        ErrorCode.NO_EXPENSE_BY_PERSON_ID,
+                        id.toString()
+                    )
+                )
+            )
+
+    fun deleteByCategoryNameAndPersonId(categoryName: String, personId: Long) =
+        getByCategoryNameAndPersonId(categoryName, personId).flatMap { expenses.deleteByCategoryNameIgnoreCase(categoryName) }
+
+    fun getByCategoryNameAndPersonId(categoryName: String, personId: Long): Flux<Expense> = getByCategoryNameAndPersonIdWithValidate(categoryName,personId)
+
+    private fun getByCategoryNameAndPersonIdWithValidate(categoryName: String, personId: Long): Flux<Expense> =
+       expenses.existsByPersonId(personId).flatMap { it. }
 
     fun findByCostLessThan(cost: Int, pageNum: Int, pageSize: Int, direction: Sort.Direction): Flux<Expense> {
         validatePageParamsAndSortDirection(pageNum, pageSize, direction)

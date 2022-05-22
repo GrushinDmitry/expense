@@ -1,5 +1,9 @@
 package crud.expense.services
 
+import crud.expense.configuration.ErrorCode
+import crud.expense.configuration.MemberServiceAlreadyExistsException
+import crud.expense.configuration.MemberServiceNotFoundException
+import crud.expense.configuration.WarningCode
 import crud.expense.models.Person
 import crud.expense.repositories.Persons
 import org.springframework.stereotype.Service
@@ -9,17 +13,28 @@ import reactor.core.publisher.Mono
 @Service
 class PersonService(private val persons: Persons) {
 
-    fun create(person: Person): Mono<Person> = persons.save(person.copy(id=null))
+    fun create(person: Person): Mono<Person> = getByNames(person.firstname, person.lastname)
+        .flatMap<Person> {
+            Mono.error(
+                MemberServiceAlreadyExistsException(
+                    WarningCode.PERSON_ALREADY, listOf(it.firstname, it.lastname).joinToString(" ")
+                )
+            )
+        }.switchIfEmpty(persons.save(person.copy(id = null)))
 
-    fun deleteById(id: Long) = persons.deleteById(id)
+    fun deleteById(id: Long) = getByIdWithValidate(id).flatMap { persons.deleteById(id) }
 
-    fun findAll(): Flux<Person> = persons.findAll()
+    fun getAll(): Flux<Person> =
+        persons.findAll().switchIfEmpty(Flux.error(MemberServiceNotFoundException(ErrorCode.NO_PERSONS)))
 
-    fun findById(id: Long): Mono<Person> = persons.findById(id)
+    fun getById(id: Long): Mono<Person> = getByIdWithValidate(id)
 
-    fun findByNames(firstname: String, lastname: String): Mono<Person> =
+    fun getByNames(firstname: String, lastname: String): Mono<Person> =
         persons.findByFirstnameIgnoreCaseAndLastnameIgnoreCase(firstname, lastname)
 
-    fun update(updatedPerson: Person, id: Long): Mono<Person> = persons.save(updatedPerson.copy(id = id))
+    fun update(updatedPerson: Person, id: Long): Mono<Person> =
+        getByIdWithValidate(id).flatMap { persons.save(updatedPerson.copy(id = it.id)) }
 
+    private fun getByIdWithValidate(id: Long): Mono<Person> = persons.findById(id)
+        .switchIfEmpty(Mono.error(MemberServiceNotFoundException(ErrorCode.NO_PERSON_BY_ID, id.toString())))
 }
