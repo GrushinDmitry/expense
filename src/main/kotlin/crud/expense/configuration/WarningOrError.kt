@@ -17,4 +17,8 @@ object ErrorCode {
     const val NO_PERSON_BY_ID = "Person_not_found_by_id"
     const val NO_EXPENSE_BY_CATEGORY_NAME = "Expense_not_found_by_category_name"
     const val NO_EXPENSE_BY_PERSON_ID = "Expense_not_found_by_person_id"
+    const val NO_EXPENSE_WITH_COST_LESS = "Expense_not_found_with_cost_less"
+    const val NO_EXPENSE_WITH_COST_GREATER = "Expense_not_found_with_cost_greater"
+    const val NO_EXPENSE_BETWEEN_START_DATE_AND_END_DATE = "Expense_not_found_between_start_date_and_end_date"
+    const val ILLEGAL_ARGUMENT = "Illegal_argument"
 }

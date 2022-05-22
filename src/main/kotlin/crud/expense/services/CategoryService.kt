@@ -23,8 +23,6 @@ class CategoryService(private val categories: Categories) {
 
     fun getByName(name: String): Mono<Category> = getByNameWithValidate(name)
 
-    fun getById(id: Long): Mono<Category> = getByIdWithValidate(id)
-
     fun update(updatedCategory: Category, id: Long): Mono<Category> =
         getByIdWithValidate(id).flatMap { categories.save(updatedCategory.copy(id = it.id)) }
 

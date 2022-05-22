@@ -24,6 +24,7 @@ class ExceptionHandler(val objectMapper: ObjectMapper, val messageSource: Messag
         return when (ex) {
             is MemberServiceNotFoundException -> handleMemberServiceNotFoundException(exchange, ex)
             is MemberServiceAlreadyExistsException -> handleMemberServiceAlreadyExistsException(exchange, ex)
+            is IllegalArgumentException -> handleIllegalArgumentException(exchange, ex)
             else -> handleUnknownError(exchange)
         }
     }
@@ -40,6 +41,23 @@ class ExceptionHandler(val objectMapper: ObjectMapper, val messageSource: Messag
                         code = ex.message, message = messageSource.getMessage(
                             ex.message, arrayOf(ex.value), Locale.getDefault()
                         )
+                    )
+                )
+            ),
+            exchange
+        )
+    }
+
+    private fun handleIllegalArgumentException(
+        exchange: ServerWebExchange,
+        ex: IllegalArgumentException
+    ): Mono<Void> {
+        return buildResponseAndLog(
+            HttpStatus.BAD_REQUEST,
+            WarningOrErrorResponse(
+                listOf(
+                    WarningOrError(
+                        code = ErrorCode.ILLEGAL_ARGUMENT, message = ex.message
                     )
                 )
             ),
