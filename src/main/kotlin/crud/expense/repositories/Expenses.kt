@@ -21,10 +21,10 @@ interface Expenses : ReactiveCrudRepository<Expense, Long> {
 
     fun findByCostGreaterThanAndPersonId(cost: Int, pageable: Pageable, personId: Long): Flux<Expense>
 
-    fun findByDateCreation(
+    fun findByDateCreationBetweenAndPersonId(
         dateCreation: LocalDate,
-      /*  endDate: LocalDate,*/
-/*        pageable: Pageable,
-        personId: Long*/
+        endDate: LocalDate,
+        pageable: Pageable,
+        personId: Long
     ): Flux<Expense>
 }

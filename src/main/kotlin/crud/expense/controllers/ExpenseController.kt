@@ -51,12 +51,18 @@ internal class ExpenseController(
     @GetMapping("/date-creation-between-and-person")
     @ResponseStatus(HttpStatus.FOUND)
     fun getByDateBetweenAndPersonId(
-        @RequestParam startDate: LocalDate,
-       /* @RequestParam endDate: LocalDate,*/
-/*        @RequestParam pageNum: Int,
+        @RequestParam startDate: String,
+        @RequestParam endDate: String,
+        @RequestParam pageNum: Int,
         @RequestParam pageSize: Int,
-        @RequestParam personId: Long*/
-    ) = expenseService.getByDateBetweenAndPersonId(startDate, /*endDate,*/ /*pageNum, pageSize, personId*/)
+        @RequestParam personId: Long
+    ) = expenseService.getByDateCreationBetweenAndPersonId(
+        LocalDate.parse(startDate),
+        LocalDate.parse(endDate),
+        pageNum,
+        pageSize,
+        personId
+    )
 }
 
 

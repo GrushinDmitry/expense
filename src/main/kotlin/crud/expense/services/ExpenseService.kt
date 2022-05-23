@@ -37,7 +37,7 @@ class ExpenseService(
             expenses.findByCategoryNameIgnoreCaseAndPersonId(
                 categoryName, PageRequest.of((pageNum - 1), pageSize, Sort.by("categoryName")), personId
             ).switchIfEmpty(
-                Mono.error(
+                Flux.error(
                     MemberServiceNotFoundException(
                         ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME, categoryName
                     )
@@ -78,22 +78,22 @@ class ExpenseService(
         }
     }
 
-    fun getByDateBetweenAndPersonId(
+    fun getByDateCreationBetweenAndPersonId(
         startDate: LocalDate,
-   /*     endDate: LocalDate,*/
-  /*      pageNum: Int,
+        endDate: LocalDate,
+        pageNum: Int,
         pageSize: Int,
-        personId: Long*/
+        personId: Long
     ): Flux<Expense> {
-        //validatePageParams(pageNum, pageSize)
-        //validateData(startDate, endDate)
-        return findFirstByPersonIdWithValidate(1/*personId*/).flatMap {
-            expenses.findByDateCreation(
-                startDate, /*endDate,*/ /*PageRequest.of((pageNum - 1), pageSize, Sort.by("dateCreation")), personId*/
+        validatePageParams(pageNum, pageSize)
+        validateData(startDate, endDate)
+        return findFirstByPersonIdWithValidate(personId).flatMap {
+            expenses.findByDateCreationBetweenAndPersonId(
+                startDate, endDate, PageRequest.of((pageNum - 1), pageSize, Sort.by("dateCreation")), personId
             ).switchIfEmpty(
                 Flux.error(
                     MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_BETWEEN_START_DATE_AND_END_DATE, startDate.toString()
+                        ErrorCode.NO_EXPENSE_BETWEEN_START_DATE_AND_END_DATE, listOf(startDate.toString(),"and",endDate.toString()).joinToString(" ")
                     )
                 )
             )
@@ -127,7 +127,7 @@ class ExpenseService(
     }
 
     private fun validateData(startDate: LocalDate, endData: LocalDate) {
-        require(endData >= startDate) { "The endData=$endData must be after startData=$startDate" }
+        require(endData >= startDate) { "The endData=$endData must be before startData=$startDate" }
     }
 
 }
