@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 
 @RestController
-@RequestMapping("/expense-accounting/expense", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/expense", produces = [MediaType.APPLICATION_JSON_VALUE])
 internal class ExpenseController(
     private val expenseService: ExpenseService
 ) {
@@ -20,8 +20,8 @@ internal class ExpenseController(
     @ResponseStatus(HttpStatus.FOUND)
     fun getByCategoryNameAndPersonId(
         @RequestParam categoryName: String,
-        @RequestParam pageNum: Int,
-        @RequestParam pageSize: Int,
+        @RequestParam pageNum: Int = 1,
+        @RequestParam pageSize: Int = 5,
         @RequestParam personId: Long
     ) =
         expenseService.getByCategoryNameAndPersonId(categoryName, pageNum, pageSize, personId)
@@ -34,8 +34,8 @@ internal class ExpenseController(
     @ResponseStatus(HttpStatus.FOUND)
     fun getByCostLessThanAndPersonId(
         @RequestParam cost: Int,
-        @RequestParam pageNum: Int,
-        @RequestParam pageSize: Int,
+        @RequestParam pageNum: Int = 1,
+        @RequestParam pageSize: Int = 5,
         @RequestParam personId: Long
     ) = expenseService.getByCostLessThanAndPersonId(cost, pageNum, pageSize, personId)
 
@@ -43,8 +43,8 @@ internal class ExpenseController(
     @ResponseStatus(HttpStatus.FOUND)
     fun getByCostGreaterThanAndPersonId(
         @RequestParam cost: Int,
-        @RequestParam pageNum: Int,
-        @RequestParam pageSize: Int,
+        @RequestParam pageNum: Int = 1,
+        @RequestParam pageSize: Int = 5,
         @RequestParam personId: Long
     ) = expenseService.getByCostGreaterThanAndPersonId(cost, pageNum, pageSize, personId)
 
@@ -53,8 +53,8 @@ internal class ExpenseController(
     fun getByDateBetweenAndPersonId(
         @RequestParam startDate: String,
         @RequestParam endDate: String,
-        @RequestParam pageNum: Int,
-        @RequestParam pageSize: Int,
+        @RequestParam pageNum: Int = 1,
+        @RequestParam pageSize: Int = 5,
         @RequestParam personId: Long
     ) = expenseService.getByDateCreationBetweenAndPersonId(
         LocalDate.parse(startDate),

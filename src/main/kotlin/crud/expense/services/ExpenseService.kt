@@ -25,9 +25,7 @@ class ExpenseService(
     fun deleteByCategoryNameAndPersonId(categoryName: String, personId: Long) =
         findFirstByPersonIdWithValidate(personId).flatMap {
             findFirstByCategoryNameWithValidate(categoryName).flatMap {
-                expenses.deleteByCategoryNameIgnoreCase(
-                    categoryName
-                )
+                expenses.deleteByCategoryNameIgnoreCase(categoryName)
             }
         }
 
@@ -37,11 +35,7 @@ class ExpenseService(
             expenses.findByCategoryNameIgnoreCaseAndPersonId(
                 categoryName, PageRequest.of((pageNum - 1), pageSize, Sort.by("categoryName")), personId
             ).switchIfEmpty(
-                Flux.error(
-                    MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME, categoryName
-                    )
-                )
+                Flux.error(MemberServiceNotFoundException(ErrorCode.NO_EXPENSE_BY_CATEGORY_NAME, categoryName))
             )
         }
     }
@@ -53,11 +47,7 @@ class ExpenseService(
             expenses.findByCostLessThanAndPersonId(
                 cost, PageRequest.of((pageNum - 1), pageSize, Sort.by("cost")), personId
             ).switchIfEmpty(
-                Flux.error(
-                    MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_WITH_COST_LESS, cost.toString()
-                    )
-                )
+                Flux.error(MemberServiceNotFoundException(ErrorCode.NO_EXPENSE_WITH_COST_LESS, cost.toString()))
             )
         }
     }
@@ -69,21 +59,13 @@ class ExpenseService(
             expenses.findByCostGreaterThanAndPersonId(
                 cost, PageRequest.of((pageNum - 1), pageSize, Sort.by("cost")), personId
             ).switchIfEmpty(
-                Flux.error(
-                    MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_WITH_COST_GREATER, cost.toString()
-                    )
-                )
+                Flux.error(MemberServiceNotFoundException(ErrorCode.NO_EXPENSE_WITH_COST_GREATER, cost.toString()))
             )
         }
     }
 
     fun getByDateCreationBetweenAndPersonId(
-        startDate: LocalDate,
-        endDate: LocalDate,
-        pageNum: Int,
-        pageSize: Int,
-        personId: Long
+        startDate: LocalDate, endDate: LocalDate, pageNum: Int, pageSize: Int, personId: Long
     ): Flux<Expense> {
         validatePageParams(pageNum, pageSize)
         validateData(startDate, endDate)
@@ -93,7 +75,8 @@ class ExpenseService(
             ).switchIfEmpty(
                 Flux.error(
                     MemberServiceNotFoundException(
-                        ErrorCode.NO_EXPENSE_BETWEEN_START_DATE_AND_END_DATE, listOf(startDate.toString(),"and",endDate.toString()).joinToString(" ")
+                        ErrorCode.NO_EXPENSE_BETWEEN_START_DATE_AND_END_DATE,
+                        formMessageParameter(startDate, endDate)
                     )
                 )
             )
@@ -103,9 +86,7 @@ class ExpenseService(
     private fun findFirstByPersonIdWithValidate(id: Long): Flux<Expense> =
         expenses.findFirstByPersonId(id).switchIfEmpty(
             Flux.error(
-                MemberServiceNotFoundException(
-                    ErrorCode.NO_EXPENSE_BY_PERSON_ID, id.toString()
-                )
+                MemberServiceNotFoundException(ErrorCode.NO_EXPENSE_BY_PERSON_ID, id.toString())
             )
         )
 
@@ -129,6 +110,9 @@ class ExpenseService(
     private fun validateData(startDate: LocalDate, endData: LocalDate) {
         require(endData >= startDate) { "The endData=$endData must be before startData=$startDate" }
     }
+
+    private fun formMessageParameter(startDate: LocalDate, endDate:LocalDate): String =
+        listOf(startDate.toString(), "and", endDate.toString()).joinToString(" ")
 
 }
 

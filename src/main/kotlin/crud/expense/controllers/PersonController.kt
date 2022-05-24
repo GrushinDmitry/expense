@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/expense-accounting/person", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/person", produces = [MediaType.APPLICATION_JSON_VALUE])
 internal class PersonController(
     private val personService: PersonService
 ) {
@@ -35,8 +35,7 @@ internal class PersonController(
     fun delete(@PathVariable id: Long) = personService.deleteById(id)
 
     @PutMapping("/{id}", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun edit(@RequestBody updatedPerson: Person, @PathVariable id: Long) =
-        personService.update(updatedPerson, id)
+    fun edit(@RequestBody updatedPerson: Person, @PathVariable id: Long) = personService.update(updatedPerson, id)
 
 }
 

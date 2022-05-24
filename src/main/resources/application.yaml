@@ -22,3 +22,7 @@ logging:
     crud:
       expense: DEBUG
 
+top.path.segment: /expense-accounting
+
+connectTimeoutInSeconds: 5
+readTimeoutInSeconds: 1

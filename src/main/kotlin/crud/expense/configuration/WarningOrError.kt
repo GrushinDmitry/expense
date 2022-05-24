@@ -21,4 +21,5 @@ object ErrorCode {
     const val NO_EXPENSE_WITH_COST_GREATER = "Expense_not_found_with_cost_greater"
     const val NO_EXPENSE_BETWEEN_START_DATE_AND_END_DATE = "Expense_not_found_between_start_date_and_end_date"
     const val ILLEGAL_ARGUMENT = "Illegal_argument"
+    const val DATE_TIME_PARSE = "Date_time_parse"
 }

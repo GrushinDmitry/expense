@@ -26,8 +26,6 @@ class CategoryService(private val categories: Categories) {
     fun update(updatedCategory: Category, id: Long): Mono<Category> =
         getByIdWithValidate(id).flatMap { categories.save(updatedCategory.copy(id = it.id)) }
 
-
-
     private fun getByNameWithValidate(name: String): Mono<Category> = categories.findByNameIgnoreCase(name)
         .switchIfEmpty(Mono.error(MemberServiceNotFoundException(ErrorCode.NO_CATEGORY_BY_NAME, name)))
 

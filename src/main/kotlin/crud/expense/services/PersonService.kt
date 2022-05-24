@@ -13,11 +13,10 @@ import reactor.core.publisher.Mono
 @Service
 class PersonService(private val persons: Persons) {
 
-    fun create(person: Person): Mono<Person> = getByNames(person.firstname, person.lastname)
-        .flatMap<Person> {
+    fun create(person: Person): Mono<Person> = getByNames(person.firstname, person.lastname).flatMap<Person> {
             Mono.error(
                 MemberServiceAlreadyExistsException(
-                    WarningCode.PERSON_ALREADY, listOf(it.firstname, it.lastname).joinToString(" ")
+                    WarningCode.PERSON_ALREADY, formMessageParameter(it.firstname, it.lastname)
                 )
             )
         }.switchIfEmpty(persons.save(person.copy(id = null)))
@@ -37,4 +36,7 @@ class PersonService(private val persons: Persons) {
 
     private fun getByIdWithValidate(id: Long): Mono<Person> = persons.findById(id)
         .switchIfEmpty(Mono.error(MemberServiceNotFoundException(ErrorCode.NO_PERSON_BY_ID, id.toString())))
+
+    private fun formMessageParameter(firstname: String, lastname: String): String =
+        listOf(firstname, lastname).joinToString(" ")
 }

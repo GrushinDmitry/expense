@@ -11,6 +11,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
+import java.time.format.DateTimeParseException
 import java.util.Locale
 
 @Component
@@ -25,69 +26,71 @@ class ExceptionHandler(val objectMapper: ObjectMapper, val messageSource: Messag
             is MemberServiceNotFoundException -> handleMemberServiceNotFoundException(exchange, ex)
             is MemberServiceAlreadyExistsException -> handleMemberServiceAlreadyExistsException(exchange, ex)
             is IllegalArgumentException -> handleIllegalArgumentException(exchange, ex)
+            is DateTimeParseException -> handleDateTimeParseException(exchange, ex)
             else -> handleUnknownError(exchange)
         }
     }
 
     private fun handleMemberServiceNotFoundException(
-        exchange: ServerWebExchange,
-        ex: MemberServiceNotFoundException
+        exchange: ServerWebExchange, ex: MemberServiceNotFoundException
     ): Mono<Void> {
         return buildResponseAndLog(
-            HttpStatus.NOT_FOUND,
-            WarningOrErrorResponse(
+            HttpStatus.NOT_FOUND, WarningOrErrorResponse(
                 listOf(
                     WarningOrError(
                         code = ex.message, message = messageSource.getMessage(
-                            ex.message, arrayOf(ex.value), Locale.getDefault()
+                            ex.message, arrayOf(ex.messageParameter), Locale.getDefault()
                         )
                     )
                 )
-            ),
-            exchange
+            ), exchange
         )
     }
 
-    private fun handleIllegalArgumentException(
-        exchange: ServerWebExchange,
-        ex: IllegalArgumentException
-    ): Mono<Void> {
+    private fun handleIllegalArgumentException(exchange: ServerWebExchange, ex: IllegalArgumentException): Mono<Void> {
         return buildResponseAndLog(
-            HttpStatus.BAD_REQUEST,
-            WarningOrErrorResponse(
+            HttpStatus.BAD_REQUEST, WarningOrErrorResponse(
                 listOf(
                     WarningOrError(
                         code = ErrorCode.ILLEGAL_ARGUMENT, message = ex.message
                     )
                 )
-            ),
-            exchange
+            ), exchange
+        )
+    }
+
+
+    private fun handleDateTimeParseException(exchange: ServerWebExchange, ex: DateTimeParseException): Mono<Void> {
+        return buildResponseAndLog(
+            HttpStatus.BAD_REQUEST, WarningOrErrorResponse(
+                listOf(
+                    WarningOrError(
+                        code = ErrorCode.DATE_TIME_PARSE, message = ex.message
+                    )
+                )
+            ), exchange
         )
     }
 
     private fun handleMemberServiceAlreadyExistsException(
-        exchange: ServerWebExchange,
-        ex: MemberServiceAlreadyExistsException
+        exchange: ServerWebExchange, ex: MemberServiceAlreadyExistsException
     ): Mono<Void> {
         return buildResponseAndLog(
-            HttpStatus.OK,
-            WarningOrErrorResponse(
+            HttpStatus.OK, WarningOrErrorResponse(
                 listOf(
                     WarningOrError(
                         code = ex.message, message = messageSource.getMessage(
-                            ex.message, arrayOf(ex.value), Locale.getDefault()
+                            ex.message, arrayOf(ex.messageParameter), Locale.getDefault()
                         )
                     )
                 )
-            ),
-            exchange
+            ), exchange
         )
     }
 
     private fun handleUnknownError(exchange: ServerWebExchange): Mono<Void> {
         return buildResponseAndLog(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            WarningOrErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR, WarningOrErrorResponse(
                 listOf(
                     WarningOrError(
                         code = ErrorCode.UNKNOWN_ERROR, message = messageSource.getMessage(
@@ -95,14 +98,12 @@ class ExceptionHandler(val objectMapper: ObjectMapper, val messageSource: Messag
                         )
                     )
                 )
-            ),
-            exchange
+            ), exchange
         )
     }
 
     private fun buildResponseAndLog(
-        status: HttpStatus, warningOrErrorResponse: WarningOrErrorResponse,
-        exchange: ServerWebExchange
+        status: HttpStatus, warningOrErrorResponse: WarningOrErrorResponse, exchange: ServerWebExchange
     ): Mono<Void> {
         val bufferFactory = exchange.response.bufferFactory()
         val requestMessageType = if (status.isError) "Error" else "Warning"
@@ -110,8 +111,7 @@ class ExceptionHandler(val objectMapper: ObjectMapper, val messageSource: Messag
             bufferFactory.wrap(
                 objectMapper.writeValueAsBytes(
                     MessageResponse(
-                        requestMessageType,
-                        warningOrErrorResponse.warningsOrErrors
+                        requestMessageType, warningOrErrorResponse.warningsOrErrors
                     )
                 )
             )
@@ -125,16 +125,12 @@ class ExceptionHandler(val objectMapper: ObjectMapper, val messageSource: Messag
     }
 
     private fun logResponse(
-        status: HttpStatus,
-        warningOrErrorResponse: WarningOrErrorResponse,
-        exchange: ServerWebExchange
+        status: HttpStatus, warningOrErrorResponse: WarningOrErrorResponse, exchange: ServerWebExchange
     ) {
         val logString =
             "statusCode=${status.value()}, response=$warningOrErrorResponse, requestPath=${exchange.request.path}, methodValue=${exchange.request.methodValue}"
-        if (status.isError)
-            logger.error(logString)
-        else
-            logger.warn(logString)
+        if (status.isError) logger.error(logString)
+        else logger.warn(logString)
     }
 
 }

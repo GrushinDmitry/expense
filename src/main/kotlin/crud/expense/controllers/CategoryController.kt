@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/expense-accounting/category", produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping("/category", produces = [MediaType.APPLICATION_JSON_VALUE])
 internal class CategoryController(
     private val categoryService: CategoryService
 ) {
